@@ -22,6 +22,9 @@ app.get('/', (req, res) => {
 
 // availabel routes
 
+// middle ware used to connect with the postman with the links of notes and auth
+app.use(express.json())
+
 app.use("/api/auth", require('./routes/auth'))
 app.use("/api/notes", require('./routes/notes'))
 
