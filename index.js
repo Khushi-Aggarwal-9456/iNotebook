@@ -14,14 +14,20 @@ mongoose.connect(mongoURI).then(() => {
 // #connected to express
 const express = require('express')
 const app = express()
-const port = 3000
+const port = 5000
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
 })
 
+// availabel routes
+
+app.use("/api/auth", require('./routes/auth'))
+app.use("/api/notes", require('./routes/notes'))
+
+
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+  console.log(`Example app listening http://localhost:${port}`)
 })
 
 
