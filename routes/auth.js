@@ -2,10 +2,10 @@ const express = require("express")
 const router = express.Router()
 const Users = require("../models/Users")
 const { body, validationResult } = require("express-validator")
-const bcryptjs=require("bcryptjs")
+const bcryptjs = require("bcryptjs")
 const jwt = require('jsonwebtoken')
 
-const JWT_SECRET="khushi will be the next best mern stack develper"
+const JWT_SECRET = "khushi will be the next best mern stack develper"
 
 // through post the request will be sen for authenication of user into postman
 // specifications implied in user auth data
@@ -35,7 +35,7 @@ router.post("/createUser", [
     // console.log(salt)
 
     // here hash is genrated for both the actual password and the salt mixed with it
-    const secPass= await bcryptjs.hash(req.body.password,salt)
+    const secPass = await bcryptjs.hash(req.body.password, salt)
     // console.log(secPass)
 
     user = await Users.create({
@@ -44,15 +44,51 @@ router.post("/createUser", [
       password: secPass,
     })
     // jwt token genrated
-    const data={
-      user:{
+    const data = {
+      user: {
         id: user.id
       }
     }
-    const authJWT=jwt.sign(data,JWT_SECRET)
-    res.json({authJWT})
+    const authJWT = jwt.sign(data, JWT_SECRET)
+    res.json({ authJWT })
   } catch (error) {
     console.log(error);
+  }
+})
+
+// creating the login backend check if the user is authenicated or not 
+
+router.post("/login", [
+  body('email', "enter a valid email").isEmail(),
+  body('password', "password can not be empty").exists()
+], async (req, res) => {
+
+  // if a user put invalid format credentials
+  const result = await validationResult(req);
+  if (!result.isEmpty()) {
+    return res.status(400).JSON({ errors: result.array() });
+  }
+  const { email, password } = req.body
+  try {
+    let user = await Users.findOne({ email })
+    if (!user) {
+      return res.status(400).JSON({ errors: "Please login with correct credentials" })
+    }
+    const passCompare = await bcryptjs.compare(password, user.password)
+    if (!passCompare) {
+      return res.status(400).JSON({ errors: "Please login with correct credentials" })
+    }
+    const payload={
+      user:{
+        id:user.id
+      }
+    }
+
+    const authtoken= jwt.sign(payload,JWT_SECRET)
+    res.json({authtoken})
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("internal server error")
   }
 })
 
