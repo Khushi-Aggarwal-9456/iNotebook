@@ -4,12 +4,13 @@ const Users = require("../models/Users")
 const { body, validationResult } = require("express-validator")
 const bcryptjs = require("bcryptjs")
 const jwt = require('jsonwebtoken')
+const {fetchUser}=require('../middleware/fetchuser')
 
 const JWT_SECRET = "khushi will be the next best mern stack develper"
 
 // through post the request will be sen for authenication of user into postman
-// specifications implied in user auth data
 
+// ROUTE:1 user created with the api :app/auth/createUser
 router.post("/createUser", [
   body('name', "enter a valid name").isLength({ min: 3 }),
   body('email', "enter a valid email").isEmail(),
@@ -56,7 +57,7 @@ router.post("/createUser", [
   }
 })
 
-// creating the login backend check if the user is authenicated or not 
+// ROUTE:2 login details created with the api :app/auth/login
 
 router.post("/login", [
   body('email', "enter a valid email").isEmail(),
@@ -78,18 +79,30 @@ router.post("/login", [
     if (!passCompare) {
       return res.status(400).JSON({ errors: "Please login with correct credentials" })
     }
-    const payload={
-      user:{
-        id:user.id
+    const payload = {
+      user: {
+        id: user.id
       }
     }
 
-    const authtoken= jwt.sign(payload,JWT_SECRET)
-    res.json({authtoken})
+    const authtoken = jwt.sign(payload, JWT_SECRET)
+    res.json({ authtoken })
   } catch (error) {
     console.error(error.message);
     res.status(500).send("internal server error")
   }
 })
 
+// ROUTE:3 getting logedin user details created with the api :app/auth/getuser
+
+router.post("/getuser",fetchUser,async(req,res)=>{
+  const userId=req.user.id;
+  const user= await Users.findById(userId).select("-password")
+  res.send(user)
+})
+try {
+} catch (error) {
+  console.error(error.message);
+  res.status(500).send("internal server error")
+}
 module.exports = router
